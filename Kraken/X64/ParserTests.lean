@@ -82,6 +82,19 @@ info: [Directive.instr
 #guard_msgs in
 #check parse("pop (%rax)")
 
+-- Test: leave takes no operand and is 64-bit, with or without the q suffix
+/--
+info: [Directive.instr (regular Width.W64 Width.W64 Operation.leave)] : List Directive
+-/
+#guard_msgs in
+#check parse("leave")
+
+/--
+info: [Directive.instr (regular Width.W64 Width.W64 Operation.leave)] : List Directive
+-/
+#guard_msgs in
+#check parse("leaveq")
+
 -- Test: Memory operand with displacement
 /--
 info: [Directive.instr

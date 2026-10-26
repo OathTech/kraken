@@ -79,6 +79,7 @@ def operation {w} (aw : Width) (op : Operation w) : String :=
   | .movzx d x => s!"movzx {rm aw x}, {rm aw d}"
   | .push x => one "push" (operand aw x)
   | .pop d => one "pop" (rm aw d)
+  | .leave => "leave"
   | .setcc cc d => s!"set{cc} {rm aw d}"
   | .cmovcc cc d x => s!"cmov{cc} {rm aw x}, {reg d}"
   | .lea d a => s!"lea {addr aw a}, {reg d}"

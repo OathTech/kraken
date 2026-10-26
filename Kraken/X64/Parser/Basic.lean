@@ -1050,6 +1050,9 @@ def parseInstr : Parser Instr := do
     let ( addr_w, dst ) ← parseRegOrMemAO w
     pure (toInstr addr_w (.pop dst))
 
+  | "leave" | "leaveq" =>
+    pure (toInstr .none (w := .W64) .leave)
+
   | "ret" | "retq" =>
     pure (toInstr .none (w := .W64) .ret)
 

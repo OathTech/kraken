@@ -483,6 +483,12 @@ set_option maxHeartbeats 1000000
     s.load rsp w (fun val s =>
     let s := { s with regs := s.regs.set64 .rsp (rsp + w.bytesv) }
     s.set dst val p next)
+  | .leave =>
+    -- RSP := RBP, then RBP := Pop() at the operand size (BP for 16 bits); no flags.
+    let rsp := s.regs.get64 .rbp
+    s.load rsp w (fun val s =>
+    let s := { s with regs := s.regs.set64 .rsp (rsp + w.bytesv) }
+    next (s.setReg (.low .rbp w) val))
   | .setcc cc dst =>
     s.set dst (cc.interp s.status) p next
   | .cmovcc cc dst src =>

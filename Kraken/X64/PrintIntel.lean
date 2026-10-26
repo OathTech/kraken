@@ -132,6 +132,7 @@ def Operation.toStr {w} (op : Operation w) (addr_w : Width := .W64) : String := 
   | .movzx dst src => s!"movzx {dst.toStr addr_w}, {src.toStr addr_w}"
   | .push src => s!"push {src.toStr addr_w}"
   | .pop dst => s!"pop {dst.toStr addr_w}"
+  | .leave => "leave"
   | .setcc cc dst => s!"set{cc} {dst.toStr addr_w}"
   | .cmovcc cc dst src => s!"cmov{cc} {dst}, {src.toStr addr_w}"
   | .lea dst src => s!"lea {dst}, {src.toStr addr_w}"
