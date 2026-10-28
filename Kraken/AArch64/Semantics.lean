@@ -1004,7 +1004,7 @@ def Program.fakeLayout (prog : Program) : Executable :=
   let layout : Layout := { start := h.toInt64<<<16, size i := prog[i]!.fakeSize }
   layout prog
 
-abbrev eval [layout : Layout] (prog : Program) := Executable.eval (layout prog)
+abbrev Program.eval [layout : Layout] (prog : Program) := Executable.eval (layout prog)
 
 /-- info: Except.ok 58 -/
 #guard_msgs in
