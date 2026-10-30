@@ -754,6 +754,26 @@ def parseInstr : Parser Instr := do
       let (addr_w, src) ← parseRegOrMemAO w
       pure (toInstr addr_w (.imul1 src))
     )
+  | "idiv" =>
+    let ( addr_w, src) ← parseRegOrMem
+    let ⟨ _w, src ⟩ ← assertW src
+    pure (toInstr addr_w (.idiv src))
+
+  | "idivq" | "idivl" | "idivw" | "idivb" =>
+    let w ← instrWidth mn
+    let ( addr_w, src ) ← parseRegOrMemAO w
+    pure (toInstr addr_w (.idiv src))
+
+  -- CWD/CDQ/CQO: the AT&T names and the Intel names gas accepts in AT&T mode; the width is the mnemonic's
+  | "cwtd" | "cwd" =>
+    pure (toInstr .none (w := .W16) .cdq)
+
+  | "cltd" | "cdq" =>
+    pure (toInstr .none (w := .W32) .cdq)
+
+  | "cqto" | "cqo" =>
+    pure (toInstr .none (w := .W64) .cdq)
+
   | "neg" =>
     let ( addr_w, dst) ← parseRegOrMem
     let ⟨ _w, dst ⟩ ← assertW dst

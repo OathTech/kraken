@@ -95,6 +95,57 @@ info: [Directive.instr (regular Width.W64 Width.W64 Operation.leave)] : List Dir
 #guard_msgs in
 #check parse("leaveq")
 
+-- Test: idiv takes its width from the operand or the suffix; cwtd/cltd/cqto and cwd/cdq/cqo take no operand
+/--
+info: [Directive.instr (regular Width.W64 Width.W32 (Operation.idiv ↑(low Reg64.rcx Width.W32)))] : List Directive
+-/
+#guard_msgs in
+#check parse("idiv %ecx")
+
+/--
+info: [Directive.instr (regular Width.W64 Width.W64 (Operation.idiv ↑(low Reg64.rcx Width.W64)))] : List Directive
+-/
+#guard_msgs in
+#check parse("idivq %rcx")
+
+/--
+info: [Directive.instr
+    (regular Width.W64 Width.W32
+      (Operation.idiv ↑{ base := some (RegOrRip.reg Reg64.rsp), idx := none, disp := ↑8 }))] : List Directive
+-/
+#guard_msgs in
+#check parse("idivl 8(%rsp)")
+
+/--
+info: [Directive.instr (regular Width.W64 Width.W8 (Operation.idiv ↑(low Reg64.rcx Width.W8)))] : List Directive
+-/
+#guard_msgs in
+#check parse("idivb %cl")
+
+/--
+info: [Directive.instr (regular Width.W64 Width.W32 Operation.cdq)] : List Directive
+-/
+#guard_msgs in
+#check parse("cltd")
+
+/--
+info: [Directive.instr (regular Width.W64 Width.W64 Operation.cdq)] : List Directive
+-/
+#guard_msgs in
+#check parse("cqto")
+
+/--
+info: [Directive.instr (regular Width.W64 Width.W16 Operation.cdq)] : List Directive
+-/
+#guard_msgs in
+#check parse("cwtd")
+
+/--
+info: [Directive.instr (regular Width.W64 Width.W32 Operation.cdq)] : List Directive
+-/
+#guard_msgs in
+#check parse("cdq")
+
 -- Test: Memory operand with displacement
 /--
 info: [Directive.instr

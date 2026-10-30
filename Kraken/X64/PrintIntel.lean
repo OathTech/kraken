@@ -123,6 +123,10 @@ instance : ToString ShiftCountExpr where toString
   | .cl => "cl"
   | .imm8 v => ToString.toString v
 
+/-- CWD/CDQ/CQO by the operand width. There is no 8-bit form; the name printed for it is not an instruction. -/
+def cdqIntel : Width → String
+  | .W16 => "cwd" | .W32 => "cdq" | .W64 => "cqo" | .W8 => "cdqb"
+
 def Operation.toStr {w} (op : Operation w) (addr_w : Width := .W64) : String := match op with
   | .mov dst src => s!"mov {dst.toStr addr_w}, {src.toStr addr_w}"
   | @Operation.movsx _ w' dst src =>
@@ -130,6 +134,7 @@ def Operation.toStr {w} (op : Operation w) (addr_w : Width := .W64) : String := 
     let m := if w == .W64 && w' == .W32 then "movsxd" else "movsx"
     s!"{m} {dst.toStr addr_w}, {src.toStr addr_w}"
   | .movzx dst src => s!"movzx {dst.toStr addr_w}, {src.toStr addr_w}"
+  | .cdq => cdqIntel w
   | .push src => s!"push {src.toStr addr_w}"
   | .pop dst => s!"pop {dst.toStr addr_w}"
   | .leave => "leave"
@@ -151,6 +156,7 @@ def Operation.toStr {w} (op : Operation w) (addr_w : Width := .W64) : String := 
   | .imul none src1 src2 => s!"imul {src1.toStr addr_w}, {src2.toStr addr_w}"
   | .imul (some dst) src1 src2 => s!"imul {dst.toStr addr_w}, {src1.toStr addr_w}, {src2.toStr addr_w}"
   | .imul1 src => s!"imul {src.toStr addr_w}"
+  | .idiv src => s!"idiv {src.toStr addr_w}"
   | .test a b => s!"test {a.toStr addr_w}, {b.toStr addr_w}"
   | .and dst src => s!"and {dst.toStr addr_w}, {src.toStr addr_w}"
   | .not dst => s!"not {dst.toStr addr_w}"

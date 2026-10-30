@@ -60,6 +60,11 @@ def count : ShiftCountExpr → String
   | .cl => "%cl"
   | .imm8 e => "$" ++ const e
 
+/-- CWD/CDQ/CQO by the operand width (`cwtd`, `cltd`, `cqto`). There is no 8-bit form; the name printed for it is
+not an instruction and does not round-trip. -/
+def cdq : Width → String
+  | .W16 => "cwtd" | .W32 => "cltd" | .W64 => "cqto" | .W8 => "cdqb"
+
 def target (aw : Width) : RelRegOrMem → String
   | .rel (.sub e .after_current_instruction) => const e
   | .rel e => const e
@@ -77,6 +82,7 @@ def operation {w} (aw : Width) (op : Operation w) : String :=
   | .movzx (w' := w') d x@(.mem _) => s!"movz{suffix w'}{s} {rm aw x}, {rm aw d}"
   | .movsx d x => s!"movsx {rm aw x}, {rm aw d}"
   | .movzx d x => s!"movzx {rm aw x}, {rm aw d}"
+  | .cdq => cdq w
   | .push x => one "push" (operand aw x)
   | .pop d => one "pop" (rm aw d)
   | .leave => "leave"
@@ -96,6 +102,7 @@ def operation {w} (aw : Width) (op : Operation w) : String :=
   | .mul x => one "mul" (rm aw x)
   | .mulx hi lo x => s!"mulx {rm aw x}, {reg lo}, {reg hi}"
   | .imul1 x => one "imul" (rm aw x)
+  | .idiv x => one "idiv" (rm aw x)
   | .imul none a b => two "imul" (operand aw b) (rm aw a)
   | .imul (some d) a b => s!"imul{s} {operand aw b}, {rm aw a}, {rm aw d}"
   | .test a b => two "test" (operand aw b) (rm aw a)

@@ -191,6 +191,8 @@ inductive Operation (w : Width)
   | mov (_ : Dst w) (src : Operand w)
   | movsx {w'} (_ : Dst w) (src : RegOrMem w') -- {_ : w'.bits < w.bits ∧ w'.bits < 32}
   | movzx {w'} (_ : Dst w) (src : RegOrMem w') -- {_ : w'.bits < w.bits ∧ w'.bits < 32}
+  -- CWD/CDQ/CQO (AT&T cwtd/cltd/cqto): the sign of ax/eax/rax fills dx/edx/rdx; no 8-bit form
+  | cdq -- {_ : 16 <= w.bits}
   | push (src : Operand w)
   | pop  (_ : Dst w)
   | leave
@@ -214,6 +216,8 @@ inductive Operation (w : Width)
   -- syntax level `imul` instruction, where imul1 is the 1-operand case
   | imul1 (src : RegOrMem w)
   | imul (_ : Option (Dst w)) (src1 : RegOrMem w) (src2 : Operand w)
+  -- signed division of rdx:rax (edx:eax, dx:ax; ax for 8 bits) by src: the quotient into rax (al), the remainder into rdx (ah)
+  | idiv (src : RegOrMem w)
   -- Bitwise
   | test (a : RegOrMem w) (b : Operand w)
   | and  (_ : Dst w) (src : Operand w)

@@ -474,6 +474,14 @@ set_option maxHeartbeats 1000000
   | .mov dst src => src.interp s p (fun val s => s.set dst val p next)
   | .movsx dst src => src.interp s p (fun val s => s.set dst (val.signExtend _) p next)
   | .movzx dst src => src.interp s p (fun val s => s.set dst (val.zeroExtend _) p next)
+  | .cdq =>
+    -- CWD/CDQ/CQO: dx/edx/rdx := the sign of ax/eax/rax, as a write at the operand width (so the 32-bit form
+    -- zero-extends rdx and the 16-bit form keeps its upper bits); no flags. There is no 8-bit form.
+    match (generalizing := false) (motive := Width → Effects) w with
+    | .W8 => unimplemented "cwd/cdq/cqo has no 8-bit form"
+    | _ =>
+      let a := s.regs.get (Reg.low .rax w)
+      next (s.setReg (.low .rdx w) (if a.msb then BitVec.allOnes _ else BitVec.zero _))
   | .push src =>
     src.interp s p (fun v s =>
     let rsp := s.regs.get64 .rsp - w.bytesv
@@ -614,6 +622,24 @@ set_option maxHeartbeats 1000000
     let low := BitVec.ofInt w.bits v
     let cf := v != low.toInt
     next { s with status := { cf := cf, pf, af, zf, sf, of := cf }})))))
+  | .idiv src =>
+    -- IDIV: the dividend is rdx:rax, edx:eax, dx:ax, or ax at 8 bits; the quotient, truncated toward zero, goes to
+    -- rax/eax/ax/al and the remainder, with the dividend's sign, to rdx/edx/dx/ah. A zero divisor or a quotient outside
+    -- the signed range of the operand width is a divide error (#DE), reported as `unimplemented` (the vocabulary of
+    -- the data-block case in Directive.interp); never a nondeterministic result. CF, OF, SF, ZF, AF, PF are undefined.
+    src.interp s p (fun b s =>
+    let dividend : Int := if w == .W8 then (s.regs.get (.low .rax .W16)).toInt
+      else (s.regs.get (.low .rdx w) ++ s.regs.get (.low .rax w)).toInt
+    let divisor := b.toInt
+    if divisor == 0 then unimplemented "#DE: idiv by zero" else
+    let q := dividend.tdiv divisor
+    let r := dividend.tmod divisor
+    let bound : Int := 2 ^ (w.bits - 1)
+    if q < -bound || bound ≤ q then unimplemented "#DE: idiv quotient out of range" else
+    let s := if w == .W8
+      then (s.setReg (.low .rax .W8) (.ofInt _ q)).setReg .ah (.ofInt _ r)
+      else (s.setReg (.low .rax w) (.ofInt _ q)).setReg (.low .rdx w) (.ofInt _ r)
+    undefined (fun (status : StatusFlags) => next { s with status }))
   | .imul dst src1 src2 =>
     src1.interp s p (fun a s =>
     src2.interp s p (fun b s =>
